@@ -1273,7 +1273,8 @@ main()
    char origPos;
 
    int numChars, port, stopChar, success, numCharsR, stopCharR;
-
+   int j2, j;
+   unsigned int k1, k2;
    nextCommand = 'O';
    fireTimer = TICK_TIMER;
    numGaugeReads = 50;
@@ -1359,6 +1360,7 @@ main()
             case 'F':
             //motor valve speed backward
             case 'B':
+            case 'D':
                //get valve number
                wfd valve=input_character(1000,0);
                //if none sent break
@@ -1417,8 +1419,13 @@ main()
                      	//get current position of valve
                      	position=readings[((valve-'0')*3)+13];
                      	//get current open limit of valve
-                     	valve_limit[valve-'1']=readings[((valve-'0')*3)+14]+100;
-                     	//if limit has been reached break
+                     	//valve_limit[valve-'1']=readings[((valve-'0')*3)+14]+100;
+                        valve_limit[valve-'1']=9400;
+                        //if limit has been reached break
+                        serBputs(" position ");
+                        wfd output_string(position);
+                        serBputs(" limit ");
+                        wfd output_string(valve_limit[valve-'1']);
                      	if (position>=valve_limit[valve-'1'])break;
                      }
                      // If we are setting the forward speed...
@@ -1443,9 +1450,17 @@ main()
                      	//get current position of valve
                      	position=readings[((valve-'0')*3)+13];
                      	//get current close limit
-                     	valve_limit[valve-'1']=readings[((valve-'0')*3)+15]-100;
+                     	//valve_limit[valve-'1']=readings[((valve-'0')*3)+15]-100;
+                        valve_limit[valve-'1']=8000;
                      	//if limit has been reached break
+
+                        serBputs(" position ");
+                        wfd output_string(position);
+                        serBputs(" limit ");
+                        wfd output_string(valve_limit[valve-'1']);
                      	if (position<=valve_limit[valve-'1'])break;
+
+                        //if (position<=readings[((valve-'0')*3)+14]-10)break;
                      }
                      // If we are setting the backward speed...
                      if (command == 'B')
@@ -1459,9 +1474,71 @@ main()
                            pwm_set(valve - '1', (int)motor_speed, 0);
                         }
                      }
+
                   }
-                  //start moving valve as indicated
-                  move_motor_valve(valve-'1',command);
+                  else if (command=='D' )
+                  {
+                     wfd j=input_character(1000,0);  // j is + or - (direction).
+                     //now get target:
+	                  // get low byte of target
+	                  wfd j2=input_character(1000,0);
+	                  if (j2<0) break; // timeout
+	                  k1=j2;
+	                  // get high byte of target
+	                  wfd j2=input_character(1000,0);
+	                  if (j2<0) break; // timeout
+	                  k2=j2;
+	                  k2<<=8;
+	                  k2+=k1;
+	                  serBputs(" Going to k2: ");
+	                  wfd output_string(k2);
+                     //DelayMs(2000);
+                  	// Check the current position if we have to
+                  	if (MV_position_checked[valve - '1'] == 1)
+                     {
+                     	//get current position of valve
+                     	position=readings[((valve-'0')*3)+13];
+                     	//get current close limit
+                     	//valve_limit[valve-'1']=readings[((valve-'0')*3)+15]-100;
+                        valve_limit[valve-'1']=k2;
+                     	//if limit has been reached break
+
+                        serBputs(" position    ");
+                        wfd output_string(position);
+                        serBputs(" limit ");
+                        wfd output_string(valve_limit[valve-'1']);
+
+                        if (j=='+')
+           					{
+                           if (position>=valve_limit[valve-'1'])break;
+                           //start moving valve as indicated
+                 	         move_motor_valve(valve-'1','O'); //valve=0..3, command='O', 'C', or 'S'
+	                        //void move_motor_valve(int valve, char direction)
+	                        //valve=0..3, direction='O', 'C', or 'S'
+
+                        }
+                        else if (j=='-')
+                        {
+                           if (position<=valve_limit[valve-'1'])break;
+                           //start moving valve as indicated
+                 	         move_motor_valve(valve-'1','C'); //valve=0..3, command='O', 'C', or 'S'
+	                        //void move_motor_valve(int valve, char direction)
+	                        //valve=0..3, direction='O', 'C', or 'S'
+                        }
+
+
+
+                        //if (position<=readings[((valve-'0')*3)+14]-10)break;
+                     }
+
+                  }
+                  if (command!='D' )
+                  {
+                  	//start moving valve as indicated
+	                  move_motor_valve(valve-'1',command); //valve=0..3, command='O', 'C', or 'S'
+                 		//void move_motor_valve(int valve, char direction)
+							//valve=0..3, direction='O', 'C', or 'S'
+                  }
                }
                break;
             //case '?': open serial port with specified baud rate
@@ -1525,6 +1602,12 @@ main()
                   output_character(motor_valve_status[valve-49]);
                }
                break;
+             // get position
+            case 'Z': //e.g. type Z1 for position of valve 1.
+            	wfd valve=input_character(1000,0);
+             	position=readings[((valve-'0')*3)+13];
+               serBputs(" position ");
+               wfd output_string(position);
             //get  a reading and return it
             case 'R':
                // get channel designator
@@ -1932,8 +2015,12 @@ main()
                if (motor_valve_status[valve - '1']=='O')
                {//open if 8
                   position=readings[((valve - '0')*3)+13];
+                  /*serBputs(" position    ");
+                  wfd output_string(position);
+                  serBputs(" limit ");
+                  wfd output_string(valve_limit[valve-'1']); */
                   //wfd output_string(position);
-                  if (position>=valve_limit[valve - '1'])
+                  if (position>=valve_limit[valve - '1']) //valve_limit[valve-'1']=readings[((valve-'0')*3)+15]-100; etc..
                   {//open if 9
                      move_motor_valve(valve - '1','S');
                   }//close if 9
@@ -1941,6 +2028,10 @@ main()
                else if (motor_valve_status[valve - '1']=='C')
                {//open else if 8.1
                   position=readings[((valve - '0')*3)+13];
+                  /*serBputs(" position    ");
+                  wfd output_string(position);
+                  serBputs(" limit ");
+                  wfd output_string(valve_limit[valve-'1']);*/
                   //wfd output_string(position);
                   if (position<=valve_limit[valve - '1'])
                   {//open if 10
@@ -1952,7 +2043,8 @@ main()
       }//close costate 2
       costate
       {//open costate 3
-         for (reads=0; reads<32; reads++)
+
+         for (reads=0; reads<32; reads++)   //32 channels
          {//open for 4
             wfd readings[reads]=get_reading(reads,numGaugeReads,numGaugeIgnores);
             yield;
