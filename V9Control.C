@@ -1419,13 +1419,14 @@ main()
                      	//get current position of valve
                      	position=readings[((valve-'0')*3)+13];
                      	//get current open limit of valve
-                     	//valve_limit[valve-'1']=readings[((valve-'0')*3)+14]+100;
-                        valve_limit[valve-'1']=9400;
+                     	valve_limit[valve-'1']=readings[((valve-'0')*3)+14]+100;
+                        //valve_limit[valve-'1']=9400;
                         //if limit has been reached break
-                        serBputs(" position ");
-                        wfd output_string(position);
-                        serBputs(" limit ");
-                        wfd output_string(valve_limit[valve-'1']);
+
+                        //serBputs(" position ");
+                        //wfd output_string(position);
+                        //serBputs(" limit ");
+                        //wfd output_string(valve_limit[valve-'1']);
                      	if (position>=valve_limit[valve-'1'])break;
                      }
                      // If we are setting the forward speed...
@@ -1450,14 +1451,14 @@ main()
                      	//get current position of valve
                      	position=readings[((valve-'0')*3)+13];
                      	//get current close limit
-                     	//valve_limit[valve-'1']=readings[((valve-'0')*3)+15]-100;
-                        valve_limit[valve-'1']=8000;
+                     	valve_limit[valve-'1']=readings[((valve-'0')*3)+15]-100;
+                        //valve_limit[valve-'1']=8000;
                      	//if limit has been reached break
 
-                        serBputs(" position ");
-                        wfd output_string(position);
-                        serBputs(" limit ");
-                        wfd output_string(valve_limit[valve-'1']);
+                        //serBputs(" position ");
+                        //wfd output_string(position);
+                        //serBputs(" limit ");
+                        //wfd output_string(valve_limit[valve-'1']);
                      	if (position<=valve_limit[valve-'1'])break;
 
                         //if (position<=readings[((valve-'0')*3)+14]-10)break;
@@ -1503,10 +1504,10 @@ main()
                         valve_limit[valve-'1']=k2;
                      	//if limit has been reached break
 
-                        serBputs(" position    ");
-                        wfd output_string(position);
-                        serBputs(" limit ");
-                        wfd output_string(valve_limit[valve-'1']);
+                        //serBputs(" position    ");
+                        //wfd output_string(position);
+                       // serBputs(" limit ");
+                        //wfd output_string(valve_limit[valve-'1']);
 
                         if (j=='+')
            					{
@@ -1608,7 +1609,11 @@ main()
              	position=readings[((valve-'0')*3)+13];
                serBputs(" position ");
                wfd output_string(position);
+               break;
             //get  a reading and return it
+            case 'Y':
+               serBputs("Will return pos:.. ");
+               break;
             case 'R':
                // get channel designator
                wfd channel=input_character(1000,0);
@@ -1617,7 +1622,12 @@ main()
                //if channel= ADC channels 'A'-'`' (0-31)
                if ((channel>=65) && (channel<=96))
                {//open if 6
-                  //output channel reading as a string
+                  ////output channel reading as a string
+                 // serBputs("channel ");
+                  //serBputc(channel);
+                  //serBputs(" is ");
+                  //wfd output_string(channel);
+                 // serBputs("Reading is ");
                   wfd output_string(readings[channel-65]);
                   break;
                }//close if 6
