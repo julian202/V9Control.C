@@ -993,6 +993,7 @@ cofunc void zero_scale(int scale)
       serCputc(13);
       serCputc(10);
       c=0;
+
       while(c!=10 && start_time>TICK_TIMER)
       {
          c=serCgetc();
@@ -1242,6 +1243,7 @@ cofunc int PassToChar(char port, char stopChar, int readNotWrite, int includeSto
 main()
 {//open main
    //declare main's variables
+	int c;
    int character;
    int command;
    int valve;
@@ -1491,8 +1493,10 @@ main()
 	                  k2=j2;
 	                  k2<<=8;
 	                  k2+=k1;
-	                  serBputs(" Going to k2: ");
-	                  wfd output_string(k2);
+
+	                  //serBputs(" Going to k2: ");
+	                  //wfd output_string(k2);
+
                      //DelayMs(2000);
                   	// Check the current position if we have to
                   	if (MV_position_checked[valve - '1'] == 1)
@@ -1611,9 +1615,7 @@ main()
                wfd output_string(position);
                break;
             //get  a reading and return it
-            case 'Y':
-               serBputs("Will return pos:.. ");
-               break;
+            
             case 'R':
                // get channel designator
                wfd channel=input_character(1000,0);
@@ -1768,6 +1770,35 @@ main()
                      break;
                }
                break;
+
+						//Aux scale
+						case 'Y':
+							wfd read_write = input_character(100, 0);
+							start_time = TICK_TIMER + 500;
+							switch (read_write)
+							{
+								case 'R':
+									serDopen(57600);
+									serDputc('U');
+									c = 0;
+									while (c != 13 && start_time > TICK_TIMER)
+									{
+										wfd c = input_character_D(3000);
+										serBputc(c);
+									}
+									break;
+								case 'Z':
+									serDopen(57600);
+									serDputc('V');
+									c = 0;
+									while (c != 13 && start_time > TICK_TIMER)
+									{
+										wfd c = input_character_D(3000);
+										serBputc(c);
+									}
+									break;
+							}
+							break;
             //GASRON Generator Stepper Motors
             case 'Q':
                wfd read_write = input_character(1000,0);
